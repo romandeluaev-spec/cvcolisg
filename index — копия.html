@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GD Custom Demonlist</title>
+    <style>
+        body { background: #121212; color: white; font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        .list { max-width: 600px; margin: 0 auto; }
+        .demon-card { background: #1e1e1e; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 5px solid #ff4500; text-align: left;}
+        a { color: #00ffff; text-decoration: none; }
+        .error-msg { color: #ff4a4a; font-weight: bold; background: #2a1b1b; padding: 10px; border-radius: 5px; display: inline-block; }
+    </style>
+    <!-- Вшиваем Supabase напрямую через альтернативный модуль -->
+    <script type="module">
+        import { createClient } from 'https://jsdelivr.net';
+
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5aXpjaW5sZWVrbHhlYnRidHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDM5MjcsImV4cCI6MjEwNDcxOTkyN30.359SXtnCjOlmAnJLJ5jtGihydNXGR1awm6sn1Qht6ds";
+
+        async function loadDemons() {
+            const listDiv = document.getElementById('demon-list');
+            try {
+                const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                let { data: demons, error } = await supabaseClient
+                    .from('demons')
+                    .select('*')
+                    .order('position', { ascending: true });
+
+                if (error) throw error;
+
+                listDiv.innerHTML = '';
+                if (!demons || demons.length === 0) {
+                    listDiv.innerHTML = '<p>Лист пока пуст. Добавьте первого демона через админку!</p>';
+                    return;
+                }
+
+                demons.forEach(demon => {
+                    listDiv.innerHTML += `
+                        <div class="demon-card">
+                            <h3>#${demon.position} - ${demon.name}</h3>
+                            <p>Создатель: ${demon.creator} | Верификатор: ${demon.verifier}</p>
+                            <a href="${demon.video_url}" target="_blank">Смотреть верификацию</a>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                listDiv.innerHTML = `<div class="error-msg">Ошибка базы данных: ${err.message || JSON.stringify(err)}</div>`;
+            }
+        }
+        
+        // Запуск загрузки
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadDemons);
+        } else {
+            loadDemons();
+        }
+    </script>
+</head>
+<body>
+    <h1>Geometry Dash Custom Demonlist</h1>
+    <div class="list" id="demon-list">Загрузка топа...</div>
+</body>
+</html>

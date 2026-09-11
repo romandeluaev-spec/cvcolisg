@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель администратора</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: Arial, sans-serif; padding: 50px; }
+        form { max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
+        input, button { padding: 10px; font-size: 16px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; }
+        button { background: #ff4500; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { background: #e03e00; }
+        .hidden { display: none; }
+    </style>
+    <script type="module">
+        import { createClient } from 'https://jsdelivr.net';
+
+        const SUPABASE_URL = "https://supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5aXpjaW5sZWVrbHhlYnRidHhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDM5MjcsImV4cCI6MjEwNDcxOTkyN30.359SXtnCjOlmAnJLJ5jtGihydNXGR1awm6sn1Qht6ds";
+
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                alert("Ошибка входа: " + error.message);
+            } else {
+                alert("Вы успешно вошли!");
+                checkUser();
+            }
+        }
+
+        async function checkUser() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                document.getElementById('login-block').classList.add('hidden');
+                document.getElementById('admin-block').classList.remove('hidden');
+            }
+        }
+
+        async function addDemon(e) {
+            e.preventDefault();
+            const { error } = await supabaseClient.from('demons').insert([{
+                position: parseInt(document.getElementById('pos').value),
+                name: document.getElementById('name').value,
+                creator: document.getElementById('creator').value,
+                verifier: document.getElementById('verifier').value,
+                video_url: document.getElementById('video').value
+            }]);
+
+            if (error) {
+                alert("Ошибка добавления в базу данных: " + error.message);
+            } else {
+                alert("Демон успешно добавлен в список!");
+                document.getElementById('demon-form').reset();
+            }
+        }
+
+        async function logout() {
+            await supabaseClient.signOut();
+            location.reload();
+        }
+
+        // Привязываем функции к кнопкам, так как это ES-модуль
+        window.login = login;
+        window.logout = logout;
+        window.addDemon = addDemon;
+
+        checkUser();
+    </script>
+</head>
+<body>
+    <div id="login-block">
+        <h2>Вход в админку</h2>
+        <p>Введите Email и пароль, которые вы создали во вкладке Authentication -> Users</p>
+        <input type="email" id="email" placeholder="Email" style="margin-bottom: 10px; display: block; width: 380px;">
+        <input type="password" id="password" placeholder="Пароль" style="margin-bottom: 10px; display: block; width: 380px;">
+        <button onclick="window.login()">Войти</button>
+    </div>
+
+    <div id="admin-block" class="hidden">
+        <h2>Добавить демона в лист</h2>
+        <form id="demon-form" onsubmit="window.addDemon(event)">
+            <input type="number" id="pos" placeholder="Место в топе (Position)" required>
+            <input type="text" id="name" placeholder="Название уровня" required>
+            <input type="text" id="creator" placeholder="Создатель" required>
+            <input type="text" id="verifier" placeholder="Верификатор" required>
+            <input type="url" id="video" placeholder="Ссылка на YouTube (https://...)" required>
+            <button type="submit">Добавить в лист</button>
+        </form>
+        <br>
+        <button onclick="window.logout()" style="background: #555;">Выйти из панели</button>
+    </div>
+</body>
+</html>
