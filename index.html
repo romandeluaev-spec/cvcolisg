@@ -10,7 +10,6 @@
         a { color: #00ffff; text-decoration: none; }
         .error-msg { color: #ff4a4a; font-weight: bold; background: #2a1b1b; padding: 10px; border-radius: 5px; display: inline-block; }
     </style>
-    <!-- Вшиваем Supabase напрямую через альтернативный модуль -->
     <script type="module">
         import { createClient } from 'https://jsdelivr.net';
 
@@ -48,7 +47,6 @@
             }
         }
         
-        // Запуск загрузки
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadDemons);
         } else {
