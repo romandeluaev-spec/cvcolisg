@@ -60,11 +60,10 @@
         }
 
         async function logout() {
-            await supabaseClient.signOut();
+            await supabaseClient.auth.signOut();
             location.reload();
         }
 
-        // Привязываем функции к кнопкам, так как это ES-модуль
         window.login = login;
         window.logout = logout;
         window.addDemon = addDemon;
